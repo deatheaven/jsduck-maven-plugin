@@ -25,12 +25,12 @@ Usage
 Get
 
 ```sh
-    $ git clone git://github.com/deatheaven/maven-jsduck.git
+    $ git clone git://github.com/deatheaven/jsduck-maven-plugin.git
 ```
 Install
 
 ```sh
-    $ cd maven-jsduck/maven-jsduck
+    $ cd jsduck-maven-plugin
     $ mvn install
 ```
 Run
