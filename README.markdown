@@ -14,7 +14,7 @@ Since version 4 [jsduck](http://rubygems.org/gems/jsduck) needs [v8](http://code
 In concrete terms [jsduck](http://rubygems.org/gems/jsduck) uses [therubyracer](https://github.com/cowboyd/therubyracer) 
 to make [v8](http://code.google.com/p/v8/) available via Ruby. Installing this gem especially in a maven environment on 
 Windows is a little tricky. So [v8](http://code.google.com/p/v8/) was replaced by [rhino](https://developer.mozilla.org/en-US/docs/Rhino) 
-to allow better portability.
+using [therubyrhino](https://github.com/cowboyd/therubyrhino) to allow better portability.
 
 
 Usage
