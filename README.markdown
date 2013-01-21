@@ -22,7 +22,7 @@ Usage
 Get
 
 ```sh
-    $ git clone git://github.com/pguedes/maven-jsduck.git
+    $ git clone git://github.com/deatheaven/maven-jsduck.git
 ```
 Install
 
@@ -92,3 +92,5 @@ Wishlist
 * Investigate if it is possible to do delta generation to sync the API doc with the current state instead of having to clean and regenerate
 * Wrap jsduck logging in the maven plugin's log framework
 * Allow usage of customized templates.
+* Embed plugin in maven reporting framework.
+* Use java built-in rhino engine, not a extra shipped.
