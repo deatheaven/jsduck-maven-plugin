@@ -1,6 +1,8 @@
 require 'jsduck/type_parser'
 require 'jsduck/logger'
 require 'jsduck/meta_tag_registry'
+require 'jsduck/shortener'
+require 'jsduck/util/html'
 
 module JsDuck
 
@@ -25,21 +27,24 @@ module JsDuck
       @formatter.class_context = cls[:name]
       @formatter.doc_context = cls[:files][0]
       cls[:doc] = @formatter.format(cls[:doc]) if cls[:doc]
-      [:members, :statics].each do |group|
-        cls[group].each_pair do |type, members|
-          # format all members (except hidden ones)
-          cls[group][type] = members.map {|m| m[:meta][:hide] ? m : format_member(m)  }
-        end
-      end
+      # format all members (except hidden ones)
+      cls[:members] = cls[:members].map {|m| m[:meta][:hide] ? m : format_member(m)  }
       cls[:html_meta] = format_meta_data(cls)
       cls
     end
 
+    # Returns the images detected by doc-formatter
+    def images
+      @formatter.images
+    end
+
+    private
+
     def format_member(m)
       @formatter.doc_context = m[:files][0]
       m[:doc] = @formatter.format(m[:doc]) if m[:doc]
-      if expandable?(m) || @formatter.too_long?(m[:doc])
-        m[:shortDoc] = @formatter.shorten(m[:doc])
+      if expandable?(m) || Shortener.too_long?(m[:doc])
+        m[:shortDoc] = Shortener.shorten(m[:doc])
       end
 
       # We don't validate and format CSS var and mixin type definitions
@@ -48,6 +53,7 @@ module JsDuck
       m[:html_type] = (@include_types && !is_css_tag) ? format_type(m[:type]) : m[:type] if m[:type]
       m[:params] = m[:params].map {|p| format_item(p, is_css_tag) } if m[:params]
       m[:return] = format_item(m[:return], is_css_tag) if m[:return]
+      m[:throws] = m[:throws].map {|t| format_item(t, is_css_tag) } if m[:throws]
       m[:properties] = m[:properties].map {|b| format_item(b, is_css_tag) } if m[:properties]
       m[:html_meta] = format_meta_data(m)
       m
@@ -71,11 +77,11 @@ module JsDuck
       else
         context = @formatter.doc_context
         if tp.error == :syntax
-          Logger.instance.warn(:type_syntax, "Incorrect type syntax #{type}", context[:filename], context[:linenr])
+          Logger.warn(:type_syntax, "Incorrect type syntax #{type}", context[:filename], context[:linenr])
         else
-          Logger.instance.warn(:type_name, "Unknown type #{type}", context[:filename], context[:linenr])
+          Logger.warn(:type_name, "Unknown type #{type}", context[:filename], context[:linenr])
         end
-        type
+        Util::HTML.escape(type)
       end
     end
 

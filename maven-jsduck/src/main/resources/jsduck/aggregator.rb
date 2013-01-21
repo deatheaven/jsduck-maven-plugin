@@ -1,6 +1,8 @@
 require 'jsduck/class'
 require 'jsduck/accessors'
 require 'jsduck/logger'
+require 'jsduck/enum'
+require 'jsduck/override'
 
 module JsDuck
 
@@ -79,7 +81,7 @@ module JsDuck
     def warn_alt_name(cls)
       file = cls[:files][0][:filename]
       line = cls[:files][0][:linenr]
-      Logger.instance.warn(:alt_name, "Name #{cls[:name]} used as both classname and alternate classname", file, line)
+      Logger.warn(:alt_name, "Name #{cls[:name]} used as both classname and alternate classname", file, line)
     end
 
     # Merges new class-doc into old one.
@@ -104,8 +106,7 @@ module JsDuck
       end
       old[:doc] = old[:doc].length > 0 ? old[:doc] : new[:doc]
       # Additionally the doc-comment can contain configs and constructor
-      old[:members][:cfg] += new[:members][:cfg]
-      old[:members][:method] += new[:members][:method]
+      old[:members] += new[:members]
     end
 
     # Tries to place members into classes where they belong.
@@ -136,7 +137,7 @@ module JsDuck
     end
 
     def add_to_class(cls, member)
-      cls[member[:meta][:static] ? :statics : :members][member[:tagname]] << member
+      cls[:members] << member
     end
 
     def add_orphan(node)
@@ -186,8 +187,7 @@ module JsDuck
         :doc => doc,
         :mixins => [],
         :alternateClassNames => [],
-        :members => Class.default_members_hash,
-        :statics => Class.default_members_hash,
+        :members => [],
         :aliases => {},
         :meta => {},
         :files => [{:filename => "", :linenr => 0, :href => ""}],
@@ -205,10 +205,7 @@ module JsDuck
     end
 
     # Appends Ext4 options parameter to each event parameter list.
-    # But only when we are dealing with Ext4 codebase.
     def append_ext4_event_options
-      return unless ext4?
-
       options = {
         :tagname => :param,
         :name => "eOpts",
@@ -216,7 +213,9 @@ module JsDuck
         :doc => "The options object passed to {@link Ext.util.Observable#addListener}."
       }
       @classes.each_value do |cls|
-        cls[:members][:event].each {|e| e[:params] << options }
+        cls[:members].each do |m|
+          m[:params] << options if m[:tagname] == :event
+        end
       end
     end
 
@@ -225,6 +224,22 @@ module JsDuck
       accessors = Accessors.new
       @classes.each_value do |cls|
         accessors.create(cls)
+      end
+    end
+
+    # Loops through all enums and auto-detects their types if needed.
+    def process_enums
+      Enum.new(@classes).process_all!
+    end
+
+    # Processes all overrides.
+    # Returns list of override classes.
+    def process_overrides
+      Override.new(@classes).process_all!.map do |cls|
+        # discard each override class
+        @classes.delete(cls[:name])
+        @documentation.delete(cls)
+        cls
       end
     end
 

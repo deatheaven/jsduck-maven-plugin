@@ -1,7 +1,7 @@
 require 'jsduck/logger'
-require 'jsduck/json_duck'
 require 'jsduck/file_categories'
 require 'jsduck/auto_categories'
+require 'jsduck/categories_class_name'
 
 module JsDuck
 
@@ -18,12 +18,11 @@ module JsDuck
 
     def initialize(categories, doc_formatter, relations={})
       @categories = categories
-      @doc_formatter = doc_formatter
-      @relations = relations
+      @class_name = CategoriesClassName.new(doc_formatter, relations)
     end
 
     # Returns HTML listing of classes divided into categories
-    def to_html
+    def to_html(style="")
       html = @categories.map do |category|
         [
           "<div class='section'>",
@@ -35,7 +34,7 @@ module JsDuck
       end.flatten.join("\n")
 
       return <<-EOHTML
-        <div id='categories-content' style='display:none'>
+        <div id='categories-content' style='#{style}'>
             #{html}
         </div>
       EOHTML
@@ -58,9 +57,9 @@ module JsDuck
       return groups.map do |g|
         [
           "<h3>#{g['name']}</h3>",
-          "<div class='links'>",
-          g["classes"].map {|cls| @relations[cls] ? @doc_formatter.link(cls, nil, cls) : cls },
-          "</div>",
+          "<ul class='links'>",
+          g["classes"].map {|cls| "<li>" + @class_name.render(cls) + "</li>" },
+          "</ul>",
         ]
       end
     end

@@ -1,5 +1,6 @@
-require 'jsduck/meta_tag_registry'
-require 'jsduck/html'
+require 'jsduck/util/html'
+require 'jsduck/meta_tag_renderer'
+require 'jsduck/signature_renderer'
 
 module JsDuck
 
@@ -12,6 +13,7 @@ module JsDuck
 
     def render(cls)
         @cls = cls
+        @signature = SignatureRenderer.new(cls)
 
         return [
           "<div>",
@@ -20,6 +22,7 @@ module JsDuck
               render_meta_data(@cls[:html_meta], :top),
               render_private_class_notice,
               @cls[:doc],
+              render_enum_class_notice,
               render_meta_data(@cls[:html_meta], :bottom),
             "</div>",
             "<div class='members'>",
@@ -38,10 +41,28 @@ module JsDuck
       ]
     end
 
-    def render_meta_data(meta_data, position)
-      return if meta_data.size == 0
+    def render_enum_class_notice
+      return if !@cls[:enum]
 
-      MetaTagRegistry.instance.tags(position).map {|tag| meta_data[tag.key] }
+      if @cls[:enum][:doc_only]
+        first = @cls[:members][:property][0] || {:name => 'foo', :default => '"foo"'}
+        [
+          "<p class='enum'><strong>ENUM:</strong> ",
+          "This enumeration defines a set of String values. ",
+          "It exists primarily for documentation purposes - ",
+          "in code use the actual string values like #{first[:default]}, ",
+          "don't reference them through this class like #{@cls[:name]}.#{first[:name]}.</p>",
+        ]
+      else
+        [
+          "<p class='enum'><strong>ENUM:</strong> ",
+          "This enumeration defines a set of #{@cls[:enum][:type]} values.</p>",
+        ]
+      end
+    end
+
+    def render_meta_data(meta_data, position)
+      MetaTagRenderer.render(meta_data, position)
     end
 
     def render_sidebar
@@ -67,7 +88,7 @@ module JsDuck
       return if @cls[:alternateClassNames].length == 0
       return [
         "<h4>Alternate names</h4>",
-        @cls[:alternateClassNames].sort.map {|name| "<div class='alternate-class-name'>#{name}</div>" },
+        @cls[:alternateClassNames].map {|name| "<div class='alternate-class-name'>#{name}</div>" },
       ]
     end
 
@@ -75,7 +96,7 @@ module JsDuck
       return if !@cls[type] || @cls[type].length == 0
       return [
         "<h4>#{title}</h4>",
-        @cls[type].sort.map {|name| "<div class='dependency'>#{name.exists? ? render_link(name) : name}</div>" },
+        @cls[type].map {|name| "<div class='dependency'>#{name.exists? ? render_link(name) : name}</div>" },
       ]
     end
 
@@ -220,43 +241,7 @@ module JsDuck
     end
 
     def render_signature(m)
-      expandable = m[:shortDoc] ? "expandable" : "not-expandable"
-
-      name = m[:name]
-      before = ""
-      if m[:tagname] == :method && m[:name] == "constructor"
-        before = "<strong class='new-keyword'>new</strong>"
-        name = @cls[:name]
-      end
-
-      if m[:tagname] == :cfg || m[:tagname] == :property || m[:tagname] == :css_var
-        params = "<span> : #{m[:html_type]}</span>"
-      else
-        ps = m[:params].map {|p| render_short_param(p) }.join(", ")
-        params = "( <span class='pre'>#{ps}</span> )"
-        if m[:tagname] == :method && m[:return][:type] != "undefined"
-          params += " : " + m[:return][:html_type]
-        end
-      end
-
-      after = ""
-      MetaTagRegistry.instance.signatures.each do |s|
-        after += "<strong class='#{s[:key]} signature'>#{s[:long]}</strong>" if m[:meta][s[:key]]
-      end
-
-      uri = "#!/api/#{m[:owner]}-#{m[:id]}"
-
-      return [
-        before,
-        "<a href='#{uri}' class='name #{expandable}'>#{name}</a>",
-        params,
-        after
-      ]
-    end
-
-    def render_short_param(param)
-      p = param[:html_type] + " " + param[:name]
-      return param[:optional] ? "["+p+"]" : p
+      @signature.render(m)
     end
 
     def render_long_doc(m)
@@ -267,7 +252,7 @@ module JsDuck
       doc << m[:doc]
 
       if m[:default] && m[:default] != "undefined"
-        doc << "<p>Defaults to: <code>" + HTML.escape(m[:default]) + "</code></p>"
+        doc << "<p>Defaults to: <code>" + Util::HTML.escape(m[:default]) + "</code></p>"
       end
 
       doc << render_meta_data(m[:html_meta], :bottom)
@@ -318,6 +303,10 @@ module JsDuck
         doc << render_return(ret)
       end
 
+      if item[:throws]
+        doc << render_throws(item[:throws])
+      end
+
       doc
     end
 
@@ -329,7 +318,7 @@ module JsDuck
           p[:optional] ? " (optional)" : "",
           "<div class='sub-desc'>",
             p[:doc],
-            p[:default] ? "<p>Defaults to: <code>#{HTML.escape(p[:default])}</code></p>" : "",
+            p[:default] ? "<p>Defaults to: <code>#{Util::HTML.escape(p[:default])}</code></p>" : "",
             p[:properties] && p[:properties].length > 0 ? render_params_and_return(p) : "",
           "</div>",
         "</li>",
@@ -348,6 +337,22 @@ module JsDuck
               ret[:properties] && ret[:properties].length > 0 ? render_params_and_return(ret) : "",
             "</div>",
           "</li>",
+        "</ul>",
+      ]
+    end
+
+    def render_throws(throws)
+      return [
+        "<h3 class='pa'>Throws</h3>",
+        "<ul>",
+          throws.map do |thr|
+            [
+              "<li>",
+                "<span class='pre'>#{thr[:html_type]}</span>",
+                "<div class='sub-desc'>#{thr[:doc]}</div>",
+              "</li>",
+            ]
+          end,
         "</ul>",
       ]
     end

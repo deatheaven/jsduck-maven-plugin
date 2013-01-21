@@ -19,7 +19,7 @@ require 'jsduck/options'
 
 options = JsDuck::Options.new
 options.output_dir = output_path
-options.processes = 0
+# options.processes = 0
 options.template_dir = "target/jsduck_template"
 options.guides = guides 
 if File.exists?(welcome_path)
