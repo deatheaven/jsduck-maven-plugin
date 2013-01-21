@@ -1,20 +1,23 @@
 Introduction
 ------------
 
-maven-jsduck is a Maven plugin that produces JavaScript API documentation using [jsduck](http://rubygems.org/gems/jsduck).
+This jsduck-maven-plugin is mainly based on [pguedes' maven-jsduck](https://github.com/pguedes/maven-jsduck).
 
-It uses [JRuby](http://www.jruby.org/) to run; the lib directories of [jsduck](http://rubygems.org/gems/jsduck)
-version 4.6.1 and its dependencies are unrolled in src/main/resources.
+jsduck-maven-plugin produces JavaScript API documentation using [jsduck](http://rubygems.org/gems/jsduck).
 
-The [Markdown](http://daringfireball.net/projects/markdown/) implementation used by [jsduck](http://rubygems.org/gems/jsduck)
-is [RDiscount](http://rubygems.org/gems/rdiscount) which is written in C; this was replaced by a native java implementation
-([markdownj](http://code.google.com/p/markdownj/)) to allow for better portability and performance.
+It uses [JRuby](http://www.jruby.org/) to run. Therefore all needed lib directories of 
+[jsduck](http://rubygems.org/gems/jsduck) 4.6.1 and its dependencies are unrolled in src/main/resources.
 
-Since version 4 [jsduck](http://rubygems.org/gems/jsduck) needs [v8](http://code.google.com/p/v8/) as JavaScript Engine.
-In concrete terms [jsduck](http://rubygems.org/gems/jsduck) uses [therubyracer](https://github.com/cowboyd/therubyracer) 
-to make [v8](http://code.google.com/p/v8/) available via Ruby. Installing this gem especially in a maven environment on 
-Windows is a little tricky. So [v8](http://code.google.com/p/v8/) was replaced by [rhino](https://developer.mozilla.org/en-US/docs/Rhino) 
+Since version 4 [jsduck](http://rubygems.org/gems/jsduck) needs [v8](http://code.google.com/p/v8/) as JavaScripting 
+Engine. In concrete terms [jsduck](http://rubygems.org/gems/jsduck) uses 
+[therubyracer](https://github.com/cowboyd/therubyracer) to make [v8](http://code.google.com/p/v8/) available via Ruby. 
+Installing this gem especially in a maven environment on Windows is a little tricky. 
+So [v8](http://code.google.com/p/v8/) was replaced by [rhino](https://developer.mozilla.org/en-US/docs/Rhino) 
 using [therubyrhino](https://github.com/cowboyd/therubyrhino) to allow better portability.
+
+~~The [Markdown](http://daringfireball.net/projects/markdown/) implementation used by [jsduck](http://rubygems.org/gems/jsduck)
+is [RDiscount](http://rubygems.org/gems/rdiscount) which is written in C; this was replaced by a native java implementation
+([markdownj](http://code.google.com/p/markdownj/)) to allow for better portability and performance.~~
 
 
 Usage
