@@ -15,9 +15,9 @@ Installing this gem especially in a maven environment on Windows is a little tri
 So [v8](http://code.google.com/p/v8/) was replaced by [rhino](https://developer.mozilla.org/en-US/docs/Rhino) 
 using [therubyrhino](https://github.com/cowboyd/therubyrhino) to allow better portability.
 
-~~The [Markdown](http://daringfireball.net/projects/markdown/) implementation used by [jsduck](http://rubygems.org/gems/jsduck)
+The [Markdown](http://daringfireball.net/projects/markdown/) implementation used by [jsduck](http://rubygems.org/gems/jsduck)
 is [RDiscount](http://rubygems.org/gems/rdiscount) which is written in C; this was replaced by a native java implementation
-([markdownj](http://code.google.com/p/markdownj/)) to allow for better portability and performance.~~
+([markdownj](http://code.google.com/p/markdownj/)) to allow for better portability and performance.
 
 
 Usage
