@@ -1,4 +1,4 @@
-package nl.secondfloor.mojo.jsduck;
+package de.ovgu.dke.maven.plugins;
 
 import java.io.File;
 import java.io.IOException;
